@@ -56,9 +56,9 @@ Visual comparison chart: http://i.imgur.com/k0t1e.png
 从图中可以看到，读写RAM是一个非常耗时的操作。
 为了缓解RAM与CPU之间巨大的速度差异，现代CPU架构引入了多级Cache架构。这是Intel 13900K的Die Shot，在CPU与RAM之间有Store Buffer，L1、L2、L3，每个P Core拥有自己独占的L1 L2 Cache，而E Core则四个共享一份L2 Cache。所有的核心共享L3 Cache。
 
-![13900K-Die-Shot-1](13900K-Die-Shot-1.jpeg)
+![13900K-Die-Shot-1](C++-Memory-Order/13900K-Die-Shot-1.jpeg)
 
-![13900K-Die-Shot-2](13900K-Die-Shot-2.png)
+![13900K-Die-Shot-2](C++-Memory-Order/13900K-Die-Shot-2.png)
 
 为了将CPU的硬件充分利用起来，硬件层面上做了许多优化：缓存一致性协议（Cache MESI Protocol）、Cache Ping-pong、Cache Miss。软件层面，编译器会分析Code，根据一定的的原则找出更有效率的执行方案。
 
