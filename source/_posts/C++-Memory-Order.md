@@ -54,15 +54,20 @@ Visual comparison chart: http://i.imgur.com/k0t1e.png
 
 这是[Jeaf Dean](https://en.wikipedia.org/wiki/Jeff_Dean)在Google的某次Engineering All-Hands Meeting中分享的一些[时间数据](http://highscalability.com/numbers-everyone-should-know)。
 从图中可以看到，读写RAM是一个非常耗时的操作。
-为了缓解RAM与CPU之间巨大的速度差异，现代CPU架构引入了多级Cache架构。这是Intel 13900K的Die Shot，在CPU与RAM之间有Store Buffer，L1、L2、L3，每个P Core拥有自己独占的L1 L2 Cache，而E Core则四个共享一份L2 Cache。所有的核心共享L3 Cache。
+为了缓解RAM与CPU之间巨大的速度差异，现代CPU架构引入了多级Cache架构。
 
 ![13900K-Die-Shot-1](C++-Memory-Order/13900K-Die-Shot-1.jpeg)
 
 ![13900K-Die-Shot-2](C++-Memory-Order/13900K-Die-Shot-2.png)
 
-为了将CPU的硬件充分利用起来，硬件层面上做了许多优化：缓存一致性协议（Cache MESI Protocol）、Cache Ping-pong、Cache Miss。软件层面，编译器会分析Code，根据一定的的原则找出更有效率的执行方案。
+这是Intel 13900K的Die Shot，在CPU与RAM之间有Store Buffer，L1、L2、L3，每个P Core拥有自己独占的L1 L2 Cache，而E Core则四个共享一份L2 Cache。所有的核心共享L3 Cache。
+
+为了将CPU的硬件充分利用起来，硬件层面上做了许多优化：缓存一致性协议（Cache MESI Protocol）、Cache Ping-pong、Cache Miss。软件层面，编译器会分析Code，找出更有效率的执行方案。无论是CPU硬件优化还是编译器的软件优化，它们都遵循了一个同样的原则 —— AS-IF原则。
 
 ### AS-IF原则
 
+> Allows any and all code transformations that do not change the observable behavior of the program.
+
+这是对AS-IF原则的简单概括，它的准确描述可以在[Cpp Reference](https://en.cppreference.com/w/cpp/language/as_if)中找到。
 
 [^1]: C++ Concurrency in Action 2nd
