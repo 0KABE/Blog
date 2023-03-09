@@ -1,5 +1,5 @@
 ---
-title: C++ 内存模型 & 内存序
+title: C++ 内存模型
 date: 2023-03-08 02:34:23
 tags: [C++,Memory Order,Memory Fence]
 toc: true
@@ -13,10 +13,56 @@ toc: true
 *此处的内存模型指是指多线程感知方面，而不是C++对象内存布局之类*
 :::
 
-## 优化是把双刃剑
+## 现代架构优化
 
-### 编译器优化
+随着CPU单核性能提升愈发困难，难以通过垂直扩展来实现性能巨大飞跃。CPU架构逐渐向横向扩展演化，变成了如今的多核CPU架构。多核CPU架构也对程序设计带来了新的挑战，通过并发程序设计来提高运行效率显得尤为重要。
 
-### CPU优化
+```
+Latency Comparison Numbers (~2012)
+----------------------------------
+L1 cache reference                           0.5 ns
+Branch mispredict                            5   ns
+L2 cache reference                           7   ns                      14x L1 cache
+Mutex lock/unlock                           25   ns
+Main memory reference                      100   ns                      20x L2 cache, 200x L1 cache
+Compress 1K bytes with Zippy             3,000   ns        3 us
+Send 1K bytes over 1 Gbps network       10,000   ns       10 us
+Read 4K randomly from SSD*             150,000   ns      150 us          ~1GB/sec SSD
+Read 1 MB sequentially from memory     250,000   ns      250 us
+Round trip within same datacenter      500,000   ns      500 us
+Read 1 MB sequentially from SSD*     1,000,000   ns    1,000 us    1 ms  ~1GB/sec SSD, 4X memory
+Disk seek                           10,000,000   ns   10,000 us   10 ms  20x datacenter roundtrip
+Read 1 MB sequentially from disk    20,000,000   ns   20,000 us   20 ms  80x memory, 20X SSD
+Send packet CA->Netherlands->CA    150,000,000   ns  150,000 us  150 ms
+
+Notes
+-----
+1 ns = 10^-9 seconds
+1 us = 10^-6 seconds = 1,000 ns
+1 ms = 10^-3 seconds = 1,000 us = 1,000,000 ns
+
+Credit
+------
+By Jeff Dean:               http://research.google.com/people/jeff/
+Originally by Peter Norvig: http://norvig.com/21-days.html#answers
+
+Contributions
+-------------
+'Humanized' comparison:  https://gist.github.com/hellerbarde/2843375
+Visual comparison chart: http://i.imgur.com/k0t1e.png
+```
+
+这是[Jeaf Dean](https://en.wikipedia.org/wiki/Jeff_Dean)在Google的某次Engineering All-Hands Meeting中分享的一些[时间数据](http://highscalability.com/numbers-everyone-should-know)。
+从图中可以看到，读写RAM是一个非常耗时的操作。
+为了缓解RAM与CPU之间巨大的速度差异，现代CPU架构引入了多级Cache架构。这是Intel 13900K的Die Shot，在CPU与RAM之间有Store Buffer，L1、L2、L3，每个P Core拥有自己独占的L1 L2 Cache，而E Core则四个共享一份L2 Cache。所有的核心共享L3 Cache。
+
+![13900K-Die-Shot-1](13900K-Die-Shot-1.jpeg)
+
+![13900K-Die-Shot-2](13900K-Die-Shot-2.png)
+
+为了将CPU的硬件充分利用起来，硬件层面上做了许多优化：缓存一致性协议（Cache MESI Protocol）、Cache Ping-pong、Cache Miss。软件层面，编译器会分析Code，根据一定的的原则找出更有效率的执行方案。
+
+### AS-IF原则
+
 
 [^1]: C++ Concurrency in Action 2nd
