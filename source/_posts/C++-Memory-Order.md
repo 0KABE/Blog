@@ -60,9 +60,13 @@ Visual comparison chart: http://i.imgur.com/k0t1e.png
 
 ![13900K-Die-Shot-2](C++-Memory-Order/13900K-Die-Shot-2.png)
 
-这是Intel 13900K的Die Shot，在CPU与RAM之间有Store Buffer，L1、L2、L3，每个P Core拥有自己独占的L1 L2 Cache，而E Core则四个共享一份L2 Cache。所有的核心共享L3 Cache。
+这是Intel 13900K的Die Shot，在CPU与RAM之间有Store Buffer，L1 Cache、L2 Cache、L3 Cache。每个P Core拥有自己独占的L1、L2 Cache，而E Core则四个共享一份L2 Cache。所有的核心共享L3 Cache。
 
-为了将CPU的硬件充分利用起来，硬件层面上做了许多优化：缓存一致性协议（Cache MESI Protocol）、Cache Ping-pong、Cache Miss。软件层面，编译器会分析Code，找出更有效率的执行方案。无论是CPU硬件优化还是编译器的软件优化，它们都遵循了一个同样的原则 —— AS-IF原则。
+为了提高运行效率，硬件&软件工程师们做了许多优化。  
+【硬件层面】：缓存一致性协议（Cache MESI Protocol）、Cache Ping-pong、Cache Miss  
+【软件层面】：编译器会分析Code，找出更有效率的执行方案。
+
+无论是CPU硬件优化还是编译器的软件优化，它们都遵循了一个同样的原则 —— AS-IF原则。
 
 ### AS-IF原则
 
