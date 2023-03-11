@@ -31,7 +31,7 @@
 <meta property="og:image" content="http://0kabe.github.io/Blog/2023/03/08/C++-Memory-Order/13900K-Die-Shot-1.jpeg">
 <meta property="og:image" content="http://0kabe.github.io/Blog/2023/03/08/C++-Memory-Order/13900K-Die-Shot-2.png">
 <meta property="article:published_time" content="2023-03-08T02:34:23.000Z">
-<meta property="article:modified_time" content="2023-03-10T18:40:49.320Z">
+<meta property="article:modified_time" content="2023-03-11T18:09:47.968Z">
 <meta property="article:author" content="0KABE">
 <meta property="article:tag" content="C++">
 <meta property="article:tag" content="Memory Order">
@@ -119,7 +119,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8E%B0%E4%BB%A3%E6%9E%B6%E6%9E%84%E4%BC%98%E5%8C%96"><span class="nav-number">1.</span> <span class="nav-text">现代架构优化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#AS-IF%E5%8E%9F%E5%88%99"><span class="nav-number">1.1.</span> <span class="nav-text">AS-IF原则</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8E%B0%E4%BB%A3%E6%9E%B6%E6%9E%84%E4%BC%98%E5%8C%96"><span class="nav-number">1.</span> <span class="nav-text">现代架构优化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#AS-IF%E5%8E%9F%E5%88%99"><span class="nav-number">1.1.</span> <span class="nav-text">AS-IF原则</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8E%B0%E4%BB%A3C-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B"><span class="nav-number">2.</span> <span class="nav-text">现代C++内存模型</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -205,7 +205,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2023-03-10 18:40:49" itemprop="dateModified" datetime="2023-03-10T18:40:49+00:00">2023-03-10</time>
+      <time title="Modified: 2023-03-11 18:09:47" itemprop="dateModified" datetime="2023-03-11T18:09:47+00:00">2023-03-11</time>
     </span>
 
   
@@ -223,7 +223,7 @@
 </blockquote>
 <p>在C++11标准中提出了多线程感知内存模型，它的出现使得提供各种多线程的基础设施成为可能。当你想要了解更深入地了解计算机底层时，理解内存模型的细节至关重要。</p>
 <div class="tip">
-<p><em>此处的内存模型指是指多线程感知方面，而不是C++对象内存布局之类</em></p>
+<p><em>此处的内存模型指是指【多线程感知模型】，而不是C++对象内存布局等其他模型</em></p>
 </div>
 <h2 id="现代架构优化">现代架构优化<a class="anchor" href="#现代架构优化">·</a></h2>
 <p>随着CPU单核性能提升愈发困难，难以通过垂直扩展来实现性能巨大飞跃。CPU架构逐渐向横向扩展演化，变成了如今的多核CPU架构。多核CPU架构也对程序设计带来了新的挑战，通过并发程序设计来提高运行效率显得尤为重要。</p>
@@ -231,13 +231,21 @@
 <p>这是<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Jeff_Dean">Jeaf Dean</a>在Google的某次Engineering All-Hands Meeting中分享的一些<a target="_blank" rel="noopener" href="http://highscalability.com/numbers-everyone-should-know">时间数据</a>。从图中可以看到，读写RAM是一个非常耗时的操作。为了缓解RAM与CPU之间巨大的速度差异，现代CPU架构引入了多级Cache架构。</p>
 <img src="/Blog/2023/03/08/C++-Memory-Order/13900K-Die-Shot-1.jpeg" class="" title="13900K-Die-Shot-1">
 <img src="/Blog/2023/03/08/C++-Memory-Order/13900K-Die-Shot-2.png" class="" title="13900K-Die-Shot-2">
-<p>这是Intel 13900K的Die Shot，在CPU与RAM之间有Store Buffer，L1、L2、L3，每个P Core拥有自己独占的L1 L2 Cache，而E Core则四个共享一份L2 Cache。所有的核心共享L3 Cache。</p>
-<p>为了将CPU的硬件充分利用起来，硬件层面上做了许多优化：缓存一致性协议（Cache MESI Protocol）、Cache Ping-pong、Cache Miss。软件层面，编译器会分析Code，找出更有效率的执行方案。无论是CPU硬件优化还是编译器的软件优化，它们都遵循了一个同样的原则 —— AS-IF原则。</p>
+<p>这是Intel 13900K的Die Shot，在CPU与RAM之间有Store Buffer，L1 Cache、L2 Cache、L3 Cache。每个P Core拥有自己独占的L1、L2 Cache，而E Core则四个共享一份L2 Cache。所有的核心共享L3 Cache。</p>
+<p>为了提高运行效率，硬件&amp;软件工程师们做了许多优化。<br>
+【硬件层面】：缓存一致性协议（Cache MESI Protocol）、Cache Ping-pong、Cache Miss<br>
+【软件层面】：编译器会分析Code，找出更有效率的执行方案。</p>
+<p>无论是CPU硬件优化还是编译器的软件优化，它们都遵循了一个同样的原则 —— AS-IF原则。</p>
 <h3 id="AS-IF原则">AS-IF原则<a class="anchor" href="#AS-IF原则">·</a></h3>
 <blockquote>
 <p>Allows any and all code transformations that do not change the observable behavior of the program.</p>
 </blockquote>
-<p>这是对AS-IF原则的简单概括，它的准确描述可以在<a target="_blank" rel="noopener" href="https://en.cppreference.com/w/cpp/language/as_if">Cpp Reference</a>中找到。</p>
+<p>“允许进行任何不改变程序可观察行为的代码转换”，这是对<a target="_blank" rel="noopener" href="https://en.cppreference.com/w/cpp/language/as_if">AS-IF原则</a>的简单概括。</p>
+<p>什么是程序可观察行为？</p>
+<div class="warning">
+<p>“不改变程序可观察行为”仅限于单线程环境。在多线程环境下，CPU&amp;编译器不保证不改变程序可观察行为。</p>
+</div>
+<h2 id="现代C-内存模型">现代C++内存模型<a class="anchor" href="#现代C-内存模型">·</a></h2>
 <hr class="footnotes-sep">
 <section class="footnotes">
 <ol class="footnotes-list">
