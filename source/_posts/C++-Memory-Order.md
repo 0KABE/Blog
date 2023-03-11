@@ -10,7 +10,7 @@ toc: true
 在C++11标准中提出了多线程感知内存模型，它的出现使得提供各种多线程的基础设施成为可能。当你想要了解更深入地了解计算机底层时，理解内存模型的细节至关重要。
 
 ::: tip
-*此处的内存模型指是指多线程感知方面，而不是C++对象内存布局之类*
+*此处的内存模型指是指【多线程感知模型】，而不是C++对象内存布局等其他模型*
 :::
 
 ## 现代架构优化
@@ -72,6 +72,14 @@ Visual comparison chart: http://i.imgur.com/k0t1e.png
 
 > Allows any and all code transformations that do not change the observable behavior of the program.
 
-这是对AS-IF原则的简单概括，它的准确描述可以在[Cpp Reference](https://en.cppreference.com/w/cpp/language/as_if)中找到。
+“允许进行任何不改变程序可观察行为的代码转换”，这是对[AS-IF原则](https://en.cppreference.com/w/cpp/language/as_if)的简单概括。
+
+什么是程序可观察行为？
+
+::: warning
+“不改变程序可观察行为”仅限于单线程环境。在多线程环境下，CPU&编译器不保证不改变程序可观察行为。
+:::
+
+## 现代C++内存模型
 
 [^1]: C++ Concurrency in Action 2nd
