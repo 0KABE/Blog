@@ -52,7 +52,7 @@ Contributions
 Visual comparison chart: http://i.imgur.com/k0t1e.png
 ```
 
-这是[Jeaf Dean](https://en.wikipedia.org/wiki/Jeff_Dean)在Google的某次Engineering All-Hands Meeting中分享的一些[时间数据](http://highscalability.com/numbers-everyone-should-know)。
+这是[Jeff Dean](https://en.wikipedia.org/wiki/Jeff_Dean)在Google的某次Engineering All-Hands Meeting中分享的一些[时间数据](http://highscalability.com/numbers-everyone-should-know)。
 从图中可以看到，读写RAM是一个非常耗时的操作。
 为了缓解RAM与CPU之间巨大的速度差异，现代CPU架构引入了多级Cache架构。
 
@@ -63,7 +63,7 @@ Visual comparison chart: http://i.imgur.com/k0t1e.png
 这是Intel 13900K的Die Shot，在CPU与RAM之间有Store Buffer，L1 Cache、L2 Cache、L3 Cache。每个P Core拥有自己独占的L1、L2 Cache，而E Core则四个共享一份L2 Cache。所有的核心共享L3 Cache。
 
 为了提高运行效率，硬件&软件工程师们做了许多优化。  
-【硬件层面】：缓存一致性协议（Cache MESI Protocol）、Cache Ping-pong、Cache Miss  
+【硬件层面】：乱序执行，缓存一致性协议（Cache MESI Protocol）、Cache Ping-pong、Cache Miss  
 【软件层面】：编译器会分析Code，找出更有效率的执行方案。
 
 无论是CPU硬件优化还是编译器的软件优化，它们都遵循了一个同样的原则 —— AS-IF原则。
@@ -74,12 +74,110 @@ Visual comparison chart: http://i.imgur.com/k0t1e.png
 
 “允许进行任何不改变程序可观察行为的代码转换”，这是对[AS-IF原则](https://en.cppreference.com/w/cpp/language/as_if)的简单概括。
 
-什么是程序可观察行为？
+什么是程序可观察行为？通俗来讲，就是代码的执行结果。在单线程环境下，只要代码经过转换后执行结果不变，即满足AS-IF优化原则。
+
+对于下面的代码，我们可以很容易可以得出一个结论，无论代码在经过转换后是`S1 -> S2 -> S3`还是`S2 -> S1 -> S3`，`S3`的结果都不变。（`c == 2`恒成立）
+
+```c++
+int a = 0;
+int b = 0;
+int c = 0;
+
+++a; // S1
+++b; // S2
+
+c = a + b; // S3
+```
 
 ::: warning
 “不改变程序可观察行为”仅限于单线程环境。在多线程环境下，CPU&编译器不保证不改变程序可观察行为。
 :::
 
 ## 现代C++内存模型
+
+内存模型并不是限制多线程之间的执行顺序，而是单线程内的指令执行对于其他线程的影响（修改内存所造成的影响将会如何传播给其他的线程）。
+
+**为什么指令执行的影响又是修改内存的影响？**  
+我的理解是，根据冯诺伊曼机的原理，所有的状态都保存在内存中，CPU只是一个计算部件，如果没有将计算结果（状态）保存下来，将不会对后续的计算有任何影响。
+如果内存修改的状态没有按照预期的顺序传播给其他的线程，其他的线程的计算结果就必然是错误的。
+
+为了便于理解C++内存模型，我将先从介绍一致性模型的基本概念入手。
+
+### 基本概念
+
+#### Sequential Consistency
+
+SC最开始是**Lamport**定义的，可以简述为两点：
+
+* 对某个Processor而言，执行效果与代码顺序一致
+* 对于所有Processor而言，所有的内存操作有一个单一的全局的Order
+
+这里提到的全局Order，即是内存修改顺序的Order。SC可以保证所有的Processor可以看到相同的内存修改顺序。
+
+#### Happens Before
+
+#### Synchronized With
+
+[Synchronizes-With-Relation](https://preshing.com/20130823/the-synchronizes-with-relation/)
+
+### C++内存模型
+
+#### Sequential Consistency
+
+```c++
+#include <thread>
+#include <atomic>
+#include <cassert>
+ 
+std::atomic<bool> x = {false};
+std::atomic<bool> y = {false};
+std::atomic<int> z = {0};
+ 
+void write_x()
+{
+    x.store(true, std::memory_order_seq_cst);
+}
+ 
+void write_y()
+{
+    y.store(true, std::memory_order_seq_cst);
+}
+ 
+void read_x_then_y()
+{
+    while (!x.load(std::memory_order_seq_cst))
+        ;
+    if (y.load(std::memory_order_seq_cst)) {
+        ++z;
+    }
+}
+ 
+void read_y_then_x()
+{
+    while (!y.load(std::memory_order_seq_cst))
+        ;
+    if (x.load(std::memory_order_seq_cst)) {
+        ++z;
+    }
+}
+ 
+int main()
+{
+    std::thread a(write_x);
+    std::thread b(write_y);
+    std::thread c(read_x_then_y);
+    std::thread d(read_y_then_x);
+    a.join(); b.join(); c.join(); d.join();
+    assert(z.load() != 0);  // 决不发生
+}
+```
+
+#### Acquire-Release
+
+#### Relax
+
+## 实际案例
+
+### C++单例模式
 
 [^1]: C++ Concurrency in Action 2nd
