@@ -114,9 +114,13 @@ SC最开始是**Lamport**定义的，可以简述为两点：
 
 这里提到的全局Order，即是内存修改顺序的Order。SC可以保证所有的Processor可以看到相同的内存修改顺序。
 
-#### Happens Before
-
 #### Synchronized With
+
+Synchronizes-with是一个现代计算机科学中的概念，在C++11+，Java 5+这些语言标准中均出现了它的身影。
+尽管每种语言定义下的Synchronizes-with的形式化定义不同，但是他们都有一个共同点：它描述的是两个操作之间的同步关系，尤其是不同线程之间的同步关系。
+同时，根据Synchronizes-with又能在操作间推导出Happens-before关系。
+
+#### Happens Before
 
 [Synchronizes-With-Relation](https://preshing.com/20130823/the-synchronizes-with-relation/)
 
