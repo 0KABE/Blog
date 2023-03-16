@@ -164,7 +164,7 @@ void writer_thread()
 Happens Before可以分为两种情况：
 
 * 【单线程下的Happens Before】：操作`A` Sequenced Before 操作`B`，则操作`A` Happens Before 操作`B`，且 `A` Strongly Happens Before `B`。
-* 【多线程间的happens Before】：如果线程`X`中的操作`A` Synchronizes With 线程`Y`中的操作`B`，则操作`A` Happens Before `B`
+* 【多线程间的Happens Before】：如果线程`X`中的操作`A` Synchronizes With 线程`Y`中的操作`B`，则操作`A` Happens Before `B`
 
 在单线程下，Happens Before理解起来很简单：如果操作`A` Sequenced Before 操作`B`，则操作`A` Happens Before 操作`B`，且 `A` Strongly Happens Before `B`。
 
@@ -175,6 +175,8 @@ Happens Before可以分为两种情况：
 依旧是上面的Code Example，我们可以根据上述的定义画出一张表达Happens Before关系的图表。
 
 ![Happens Before](C++-Memory-Order/happens-before.drawio.svg)
+
+当S1与S4之间存在 **Synchronizes With** 关系时，很容易得出 `data.push_back(42)` **Happens Before** `data[0]`。
 
 ### C++内存模型
 
