@@ -102,6 +102,7 @@ c = a + b; // S3
 如果内存修改的状态没有按照预期的顺序传播给其他的线程，其他的线程的计算结果就必然是错误的。
 
 为了便于理解C++内存模型，我将先从介绍一致性模型的基本概念入手。
+对于下面介绍的概念，在[Cpp Reference](https://en.cppreference.com/w/cpp/atomic/memory_order)都有严格的形式化定义描述。
 
 ### 基本概念
 
@@ -114,15 +115,66 @@ SC最开始是**Lamport**定义的，可以简述为两点：
 
 这里提到的全局Order，即是内存修改顺序的Order。SC可以保证所有的Processor可以看到相同的内存修改顺序。
 
+#### Sequenced Before
+
+Sequenced Before是所有先后关系中最好理解的一个，主要用于描述在同一线程中，求值间的先后关系：  
+如果求值A**早于**求值B，则我们称为求值A **Sequenced Before** 求值B。
+
+:::warning
+在C++中，同一语句中也存在先后关系，例如逗号表达式，详细可见[Evaluation Order](https://en.cppreference.com/w/cpp/language/eval_order)
+:::
+
 #### Synchronized With
 
 Synchronizes-with是一个现代计算机科学中的概念，在C++11+，Java 5+这些语言标准中均出现了它的身影。
 尽管每种语言定义下的Synchronizes-with的形式化定义不同，但是他们都有一个共同点：它描述的是两个操作之间的同步关系，尤其是不同线程之间的同步关系。
 同时，根据Synchronizes-with又能在操作间推导出Happens-before关系。
 
+C++定义下的Synchronized-With发生于原子操作的加载与存储之间。
+
+> If an atomic store in thread A is a release operation, an atomic load in thread B from the same variable is an acquire operation, and the load in thread B reads a value written by the store in thread A, then the store in thread A synchronizes-with the load in thread B.
+
+例如下面的代码中的 `S1` 与 `S4` 之间就存在Synchronized-With关系。
+
+```c++
+#include <vector>
+#include <atomic>
+#include <iostream>
+std::vector<int> data;
+std::atomic<bool> data_ready(false);
+
+void reader_thread()
+{
+    while(!data_ready.load())                   // S1
+    {
+    std::this_thread::sleep(std::chrono::milliseconds(1));
+    std::cout<<"The answer="<<data[0]<<"\n";    // S2
+    }
+}
+
+void writer_thread()
+{
+    data.push_back(42);                         // S3
+    data_ready=true;                            // S4
+}
+```
+
 #### Happens Before
 
-[Synchronizes-With-Relation](https://preshing.com/20130823/the-synchronizes-with-relation/)
+Happens Before可以分为两种情况：
+
+* 【单线程下的Happens Before】：操作`A` Sequenced Before 操作`B`，则操作`A` Happens Before 操作`B`，且 `A` Strongly Happens Before `B`。
+* 【多线程间的happens Before】：如果线程`X`中的操作`A` Synchronizes With 线程`Y`中的操作`B`，则操作`A` Happens Before `B`
+
+在单线程下，Happens Before理解起来很简单：如果操作`A` Sequenced Before 操作`B`，则操作`A` Happens Before 操作`B`，且 `A` Strongly Happens Before `B`。
+
+这看起来很直观，有什么特别的呢？
+
+特别之处就在于多线程模式下，Happens Before的关系将会变得复杂，因为它是一个偏序关系，存在传递性。
+
+依旧是上面的Code Example，我们可以根据上述的定义画出一张表达Happens Before关系的图表。
+
+![Happens Before](C++-Memory-Order/happens-before.drawio.svg)
 
 ### C++内存模型
 
@@ -184,4 +236,8 @@ int main()
 
 ### C++单例模式
 
-[^1]: C++ Concurrency in Action 2nd
+## Reference
+
+1. [Synchronizes-With-Relation](https://preshing.com/20130823/the-synchronizes-with-relation/)
+
+[^1]：C++ Concurrency in Action 2nd
