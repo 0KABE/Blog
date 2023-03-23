@@ -121,7 +121,7 @@ Sequenced Before是所有先后关系中最好理解的一个，主要用于描�
 如果求值A**早于**求值B，则我们称为求值A **Sequenced Before** 求值B。
 
 :::warning
-在C++中，同一语句中也存在先后关系，例如逗号表达式，详细可见[Evaluation Order](https://en.cppreference.com/w/cpp/language/eval_order)
+在C++中，同一语句中也存在先后关系，例如逗号表达式，详细可见 [Evaluation Order](https://en.cppreference.com/w/cpp/language/eval_order)
 :::
 
 #### Synchronized With
@@ -180,7 +180,13 @@ Happens Before可以分为两种情况：
 
 ### C++内存模型
 
+在了解完基本概念之后，就可以来讲讲C++11标准中定义的内存模型了。在C++中，定义了4种C++ Memory Order：~SC~，~Acquire-Release~，~Consume-Release~以及~Relax~。
+
 #### Sequential Consistency
+
+SC是 `std::atomic<T>` 各种操作的默认Memory Order，它最严格，但是也最不容易出错。对于不了解Memory Order的开发者来说，这更符合他们的直觉。
+
+对于使用SC Order的 `std::atomic<T>` ，可以保证任何Thread都能观察到同样的内存修改顺序。这在很多时候非常关键，例如下面的这段Example：
 
 ```c++
 #include <thread>
@@ -203,20 +209,14 @@ void write_y()
  
 void read_x_then_y()
 {
-    while (!x.load(std::memory_order_seq_cst))
-        ;
-    if (y.load(std::memory_order_seq_cst)) {
-        ++z;
-    }
+    while (!x.load(std::memory_order_seq_cst));
+    if (y.load(std::memory_order_seq_cst)) { ++z; }
 }
  
 void read_y_then_x()
 {
-    while (!y.load(std::memory_order_seq_cst))
-        ;
-    if (x.load(std::memory_order_seq_cst)) {
-        ++z;
-    }
+    while (!y.load(std::memory_order_seq_cst));
+    if (x.load(std::memory_order_seq_cst)) { ++z; }
 }
  
 int main()
@@ -226,13 +226,23 @@ int main()
     std::thread c(read_x_then_y);
     std::thread d(read_y_then_x);
     a.join(); b.join(); c.join(); d.join();
-    assert(z.load() != 0);  // 决不发生
+    assert(z.load() != 0);  // The assertation is always true
 }
 ```
+
+根据先前介绍的SC概念，`write_x()` & `write_y()` ~一定存在一个全局唯一~的Order。即 `read_x_then_y()` & `read_y_then_x()` 中一定至少有一个会执行到 `++z` 。因此 `assert(z.load() != 0)` 总是为 `true` 。
+
+::: tip
+如果将Memory Order修改成更加宽松的Order（Acquire-Release / Consume-Release / Relax），则这里的Assertation将可能失败。
+:::
 
 #### Acquire-Release
 
 #### Relax
+
+#### Consume-Release
+
+
 
 ## 实际案例
 
