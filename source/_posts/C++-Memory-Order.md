@@ -180,7 +180,7 @@ Happens Before可以分为两种情况：
 
 ### C++内存模型
 
-在了解完基本概念之后，就可以来讲讲C++11标准中定义的内存模型了。在C++中，定义了4种C++ Memory Order：~SC~，~Acquire-Release~，~Consume-Release~以及~Relax~。
+在了解完基本概念之后，就可以来讲讲C++11标准中定义的内存模型了。在C++中，定义了4种C++ Memory Order：*SC*，*Acquire-Release*，*Consume-Release* 以及 *Relax*。
 
 #### Sequential Consistency
 
@@ -241,7 +241,7 @@ int main()
 假设线程A & 线程B：
 
 * 线程T1中有一个 *Atomic Store* 操作S携带标签 `memory_order_release` ，线程内 *Sequenced Before* 操作S的内存写入标记为S‘
-* 线程T2中有一个 *Atomic Load* 操作L携带标签 `memory_order_acquire`，线程内~任意~ *Sequenced Before* 操作L的内存读取标记为L’
+* 线程T2中有一个 *Atomic Load* 操作L携带标签 `memory_order_acquire`，线程内**任意** *Sequenced Before* 操作L的内存读取标记为L’
 一旦操作L完成，保证线程T2中L’可以观察到所有S’的改动。
 
 这里有一段Sample Code以便于获得更加直观的理解：
