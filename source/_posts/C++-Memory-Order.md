@@ -232,17 +232,94 @@ int main()
 
 根据先前介绍的SC概念，`write_x()` & `write_y()` ~一定存在一个全局唯一~的Order。即 `read_x_then_y()` & `read_y_then_x()` 中一定至少有一个会执行到 `++z` 。因此 `assert(z.load() != 0)` 总是为 `true` 。
 
-::: tip
+::: warning
 如果将Memory Order修改成更加宽松的Order（Acquire-Release / Consume-Release / Relax），则这里的Assertation将可能失败。
 :::
 
 #### Acquire-Release
 
+假设线程A & 线程B：
+
+* 线程T1中有一个 *Atomic Store* 操作S携带标签 `memory_order_release` ，线程内 *Sequenced Before* 操作S的内存写入标记为S‘
+* 线程T2中有一个 *Atomic Load* 操作L携带标签 `memory_order_acquire`，线程内~任意~ *Sequenced Before* 操作L的内存读取标记为L’
+一旦操作L完成，保证线程T2中L’可以观察到所有S’的改动。
+
+这里有一段Sample Code以便于获得更加直观的理解：
+
+```c++
+#include <thread>
+#include <atomic>
+#include <cassert>
+#include <string>
+ 
+std::atomic<std::string*> ptr;
+int data;
+ 
+void producer()
+{
+    std::string* p  = new std::string("Hello");
+    data = 42;
+    ptr.store(p, std::memory_order_release);
+}
+ 
+void consumer()
+{
+    std::string* p2;
+    while (!(p2 = ptr.load(std::memory_order_acquire)))
+        ;
+    assert(*p2 == "Hello"); // The assertation is always true
+    assert(data == 42); // The assertation is always true
+}
+ 
+int main()
+{
+    std::thread t1(producer);
+    std::thread t2(consumer);
+    t1.join(); t2.join();
+}
+```
+
+::: warning
+同步仅建立在*释放*和*获得*同一原子对象的线程之间。其他线程可能看到与被同步线程的一者或两者相异的内存访问顺序。
+:::
+
 #### Relax
+
+带标签 `memory_order_relaxed` 的原子操作不是同步操作；它们不会为并发的内存访问行为添加顺序约束。它们只保证原子性和修改顺序的一致性。
+
+例如，默认 `x=0` & `y=0`
+
+```c++
+// Thread 1 ：
+r1 = y.load(std::memory_order_relaxed); // A
+x.store(r1, std::memory_order_relaxed); // B
+// Thread 2 ：
+r2 = x.load(std::memory_order_relaxed); // C 
+y.store(42, std::memory_order_relaxed); // D
+```
+
+结果可能会为 `r1 == 42` && `r2 == 42` 。因为即使 *Thread 1* 中 A *先序于* B 且 *Thread 2* 中 C *先序于* D ，却没有约定去避免 D 中的对 `y` 的修改会在 A 之前 ， B 中的对 `x` 的修改会在 C 之前 。 D 的副效应为它对 `y` 修改可能可见于 A 的加载操作， B 的副效应为它对 `x` 修改可能可见于 C 的加载操作。
 
 #### Consume-Release
 
+> 释放消费顺序的规范正在修订中，而且暂时不鼓励使用 `memory_order_consume` 。（C++17起）
 
+## 与 `volatile` 的关系
+
+`volatile` 相比于 Memory Order有许多不同之处：
+
+**相同点**
+
+* 两者皆禁止编译期Reorder
+
+**不同点**
+
+* `volatile` 不是原子的
+* `volatile` 不排序内存（非 volatile 内存访问可以自由地重排到 volatile 访问前后）
+
+::: warning
+Visual Studio的默认设置下，`volatile`读具有 *Release* 语义，而 `volatile` 写具有 *Acquire* 语义，因此可以将 `volatile` 对象用于线程间同步。而标准的 `volatile` 语义不可应用于多线程编程
+:::
 
 ## 实际案例
 
