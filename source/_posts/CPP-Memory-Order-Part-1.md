@@ -72,10 +72,10 @@ done = 1;             print(x);
 ##### 顺序一致性（Sequential Consistency，简写SC）模型
 
 其他的 CPU 的视角中看到的顺序和指令执行的顺序保持一致，是一种强一致的内存模型。
-::: tip
-为什么这里说的是指令的执行顺序而不是代码的执行顺序？
+
+**为什么这里说的是指令的执行顺序而不是代码的执行顺序？**
+
 因为代码的执行顺序与指令的执行顺序因为编译器的存在可能并不一致，对于硬件来说，关注的是编译器产生的指令顺序，而不是代码的执行顺序。
-:::
 
 ![C++ Sequential Consistency](./CPP-Memory-Order-Part-1/sequential-consistency.png)
 
@@ -154,13 +154,11 @@ On x86 (or other TSO): no.
 * 使用该内存模型的代表：X86
 
 ##### 部分存储定序（Part Store Order，简写PSO）模型
-
 **特点**
 允许 Store-Store、Store-Load 乱序
 不允许 Load-Store、Load-Load乱序
 
 ##### 宽松存储（Relax Memory Order，简写RMO）模型
-
 RMO 模型是一种比 X86-TSO 模型更弱的一致性模型，这种模型的典型的代表有：ARM & POWER。虽然在在实现层面拥有不小的差异，但是从他们提供的内存一致性保证来说，基本上是一致的。
 
 不同的核心从自己完整的内存拷贝中读取和写入，写入独立传播到其他处理器，并且允许重排序。
@@ -237,14 +235,14 @@ RMO 模型对于内存一致性的约束很少，但不是完全没有约束。�
 对此，Sarita Adve & Mark Hill 在 1990 年的论文 [Weak Ordering - A New Definition](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.42.5567) 中定义了 *Weakly Ordered*：
 
 > Let a synchronization model be a set of constraints on memory accesses that specify how and when synchronization needs to be done.  
->  
+>   
 > Hardware is weakly ordered with respect to a synchronization model if and only if it appears sequentially consistent to all software that obey the synchronization model.  
 
 硬件只需要在 Programmer “在意”的地方保证 *Sequential Consistency*，对于那些”不在意“的地方，硬件可以在更弱的内存模型下运行。这个“在意“就是 *Synchronization* 同步。
 
 只要程序进行了正确&足够的同步，这种内存模型就能保证和在 *Sequential Consistency* 的硬件下运行的结果一样。
 
-Adve & Hill 给出了一个同步模型，叫做 *Data Race Free (DRF)*。在这个模型下，出了内存写入&读取外，还有一个操作：*Synchronization*。内存的读写操作可以在同步操作间进行任意重排序，但是不能跨过这些同步操作，就像一个屏障一样。如果对于同一个内存地址不同线程要么同时读，要么被同步操作分隔开，那么就称为它是满足 *DRF* 模型的。一个系统在满足了 *DRF* 后能够保证 *Sequential Consistency* 也被缩写成 *DRF-SC*。
+Adve & Hill 给出了一个同步模型，叫做 *Data Race Free (DRF)*。在这个模型下，除了内存写入&读取外，还有一个操作：*Synchronization*。内存的读写操作可以在同步操作间进行任意重排序，但是不能跨过这些同步操作，就像一个屏障一样。如果对于同一个内存地址不同线程要么同时读，要么被同步操作分隔开，那么就称为它是满足 *DRF* 模型的。一个系统在满足了 *DRF* 后能够保证 *Sequential Consistency* 也被缩写成 *DRF-SC*。
 
 本质上，*DRF-SC* 要求程序在整体的内存顺序上可以不是一个全序关系，但是对于会影响到程序执行结果的内存顺序，需要通过建立偏序关系来保证正确性。
 
@@ -286,15 +284,13 @@ Java 是第一个尝试保证多线程开发下程序行为的主流编程语言
 1. 对于没有遵循 *Data Race Free* 的程序，C++ 标准不会对它的行为做出任何保证（未定义行为，UB）
 2. C++ 提供了 3 种不同的原子同步：强同步（*Sequential-Consistency*）、弱同步（*Acquire-Release*, *Consume-Release*）以及无同步（*Relax*）
 
-::: tip
-C++ 11 的内存模型设计也在 C、Rust、Swift 中被使用
-:::
+备注：C++ 11 的内存模型设计也在 C、Rust、Swift 中被使用
 
 - - - -
 
 ## 参考资料
 
-[std::memory_order - cppreference.com](https://en.cppreference.com/w/cpp/atomic/memory_order)  
-[The Synchronizes-With Relation](https://preshing.com/20130823/the-synchronizes-with-relation/)  
-[C++ 内存模型](https://paul.pub/cpp-memory-model/)  
-[Memory Models by Russ Cox](https://research.swtch.com/mm)  
+[std::memory_order - cppreference.com](https://en.cppreference.com/w/cpp/atomic/memory_order)
+[The Synchronizes-With Relation](https://preshing.com/20130823/the-synchronizes-with-relation/)
+[C++ 内存模型](https://paul.pub/cpp-memory-model/)
+[Memory Models by Russ Cox](https://research.swtch.com/mm)
