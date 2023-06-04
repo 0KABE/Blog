@@ -36,7 +36,7 @@ C++11 标准中定义了4种 C++ *Memory Order*：*Sequential Consistency*，*Ac
 
 ### Sequential Consistency
 
-与 [[C++ 内存模型 - Part 1]] 中介绍的硬件内存模型非常接近，同样基于 *DRF-SC* 模型。
+与 {% post_link CPP-Memory-Order-Part-1 %} 中介绍的硬件内存模型非常接近，同样基于 *DRF-SC* 模型。
 
 * *SC* 相比其他的弱一致性模型最大的区别在于 ***SC* 保证存在一个全局可见的内存修改顺序**，下面的 Case 可以说明这一点：
 
