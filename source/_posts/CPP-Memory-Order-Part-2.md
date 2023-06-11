@@ -1,5 +1,5 @@
 ---
-title: CPP-Memory-Order-Part-2
+title: C++ 内存模型 - Part 2
 date: 2023-04-25 02:31:50
 tags:
 ---
