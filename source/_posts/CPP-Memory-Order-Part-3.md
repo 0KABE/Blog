@@ -224,7 +224,7 @@ class Singleton {
       }
     }
 
-    return instance_.load(std::memory_order::acquire);
+    return *instance;
   }
 
  private:
