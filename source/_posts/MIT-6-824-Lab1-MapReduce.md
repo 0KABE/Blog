@@ -1,7 +1,7 @@
 ---
 title: MIT-6.824-Lab1-MapReduce
 date: 2023-09-25 01:59:30
-tags: MIT-6.824, Go, MapReduce
+tags: [ MIT-6.824, Go, Map Reduce]
 ---
 
 完成 *Map Reduce Lab* 已经有几天了，觉得有必要记录一下实现的过程中踩过的坑，以及一些自己的心得。
