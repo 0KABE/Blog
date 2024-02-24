@@ -1,3 +1,3 @@
 # Blog
 
-My personal blog for technical related
+A blog about **Programming Learning** and **Intricate Issues Encountered**.
