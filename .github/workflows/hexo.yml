@@ -12,30 +12,33 @@ jobs:
       with:
         submodules: true # Checkout private submodules(themes or something else).
 
-    # Setup NodeJS
     - name: Setup Node.js environment
       uses: actions/setup-node@v4.0.2
       with:
         node-version: 18
         cache: 'npm'
-    - run: npm ci
-            
 
-    # # Generate
-    # - name: Generate HTML
-    #   id: generate
+    - name: Install dependencies
+      run: npm ci
 
-    
-    # # Deploy hexo blog website.
-    # - name: Deploy
-    #   id: deploy
-    #   uses: sma11black/hexo-action@v1.0.4
-    #   with:
-    #     deploy_key: ${{ secrets.DEPLOY_KEY }}
-    #     user_name: 0KABE  # (or delete this input setting to use bot account)
-    #     user_email: "RIN.OKAB3@GMAIL.COM"  # (or delete this input setting to use bot account)
-    #     commit_msg: ${{ github.event.head_commit.message }}  # (or delete this input setting to use hexo default settings)
-    # # Use the output from the `deploy` step(use for test action)
-    # - name: Get the output
-    #   run: |
-    #     echo "${{ steps.deploy.outputs.notify }}"
+    - name: Build
+      run: npm run build
+
+    - name: Upload Pages artifact
+      uses: actions/upload-pages-artifact@v2
+      with:
+        path: ./public
+
+  # deploy:
+  #   needs: build
+  #   permissions:
+  #     pages: write
+  #     id-token: write
+  #   environment:
+  #     name: github-pages
+  #     url: ${{ steps.deployment.outputs.page_url }}
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Deploy to GitHub Pages
+  #       id: deployment
+  #       uses: actions/deploy-pages@v2
