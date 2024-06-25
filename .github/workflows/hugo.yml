@@ -23,7 +23,7 @@ jobs:
       run: hugo mod get -u
 
     - name: Build
-      run: hugo
+      run: hugo --baseURL https://blog.okab3.com
 
     - name: Upload Pages artifact
       uses: actions/upload-pages-artifact@v3
