@@ -1,4 +1,4 @@
-name: Publish
+name: Publish-Hugo
 
 on: [push, workflow_dispatch]
 
@@ -23,7 +23,7 @@ jobs:
       run: hugo mod get -u
 
     - name: Build
-      run: hugo --gc --minify --baseURL "${{ steps.pages.outputs.base_url }}/" 
+      run: hugo
 
     - name: Upload Pages artifact
       uses: actions/upload-pages-artifact@v3
